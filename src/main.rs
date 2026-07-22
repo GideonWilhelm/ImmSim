@@ -1,3 +1,11 @@
+mod player;
+mod game;
+mod map;
+mod physics;
+mod render;
+mod ui;
+mod common;
+
 use bevy::prelude::*;
 
 fn main() {
@@ -14,7 +22,7 @@ fn setup(mut commands: Commands) {
     commands.spawn(Camera2d);
 
     commands.spawn((
-        Text::new("Hello Bevy!"),
+        Text::new("Hello Bevy!/n"),
             Node {
                 position_type: PositionType::Absolute,
                 left: Val::Px(10.0),
@@ -28,7 +36,7 @@ fn update_text(
     mut query: Query<&mut Text>,
 ) {
     for mut text in &mut query {
-        *text = Text::new("New value!");
+        *text = Text::new("New value!\nfarts!");
     }
 }
 
