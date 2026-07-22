@@ -4,7 +4,32 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(HelloPlugin)
+        .add_systems(Startup, setup)
+        .add_systems(Update, update_text)
         .run();
+}
+
+
+fn setup(mut commands: Commands) {
+    commands.spawn(Camera2d);
+
+    commands.spawn((
+        Text::new("Hello Bevy!"),
+            Node {
+                position_type: PositionType::Absolute,
+                left: Val::Px(10.0),
+                top: Val::Px(10.0),
+                ..default()
+            },
+    ));
+}
+
+fn update_text(
+    mut query: Query<&mut Text>,
+) {
+    for mut text in &mut query {
+        *text = Text::new("New value!");
+    }
 }
 
 //TODO: DELETE ALL OF THIS FROM HERE THIS IS DEMO CODE
@@ -22,7 +47,6 @@ fn add_people(mut commands: Commands) {
     commands.spawn((Person, Name("Elaina Proctor".to_string())));
     commands.spawn((Person, Name("Renzo Hume".to_string())));
     commands.spawn((Person, Name("Zayna Nieves".to_string())));
-    commands.spawn(Text::new("Hellow World!"));
 }
 
 #[derive(Resource)]
@@ -35,7 +59,7 @@ fn greet_people(time: Res<Time>, mut timer: ResMut<GreetTimer>, query: Query<&Na
         for name in &query {
             println!("hello {}!", name.0);
         }
-        commands.spawn((Person, Name("Bumbleshit Fartkin".to_string())));
+        //commands.spawn((Person, Name("Bumbleshit Fartkin".to_string())));
     }
 }
 
