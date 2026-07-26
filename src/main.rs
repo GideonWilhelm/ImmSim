@@ -7,19 +7,67 @@ mod ui;
 mod common;
 
 use bevy::prelude::*;
+use bevy_rapier3d::prelude::*;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(HelloPlugin)
-        .add_systems(Startup, setup)
-        .add_systems(Update, update_text)
+        .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
+        .add_plugins(RapierDebugRenderPlugin::default())
+        .add_systems(Startup, (setup, player::spawn_player, player::lock_cursor))
+        .add_systems(Update, (update_text,
+            player::move_player,
+            player::look_player,
+            player::look_camera,
+            player::handle_grounding,
+            setup_level_collision,
+            quit
+        ))
+        .add_systems(Startup, (map::spawn_map, map::spawn_test_floor).chain())
         .run();
 }
 
+fn quit(keyboard: Res<ButtonInput<KeyCode>>, mut exit: MessageWriter<AppExit>) {
+    if keyboard.pressed(KeyCode::Escape) {
+        exit.write(AppExit::Success);
+    }
+}
 
-fn setup(mut commands: Commands) {
-    commands.spawn(Camera2d);
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+
+    commands.spawn((
+        WorldAssetRoot(asset_server.load("levels/DebugGym.glb#Scene0")),
+        Transform::default(),
+    ));
+
+    commands.spawn((
+        PointLight {
+            intensity: 1500.0,
+            range: 20.0,
+            shadow_maps_enabled: true,
+            ..default()
+        },
+        Transform::from_xyz(0.0, 5.0, 0.0),
+    ));
+
+    commands.spawn((
+        DirectionalLight {
+            illuminance: 10000.0,
+            shadow_maps_enabled: false,
+            ..default()
+        },
+        Transform::from_rotation(
+            Quat::from_euler(
+                EulerRot::XYZ,
+                -1.0,
+                -0.5,
+                0.0,
+            )
+        ),
+    ));
+
+    //commands.spawn(Camera2d); //NOTE: So we don't need a second camera for UI
 
     commands.spawn((
         Text::new("Hello Bevy!/n"),
@@ -32,11 +80,35 @@ fn setup(mut commands: Commands) {
     ));
 }
 
+fn setup_level_collision(
+    mut commands: Commands,
+    meshes: Res<Assets<Mesh>>,
+    query: Query<(Entity, &Mesh3d), Without<Collider>>,
+) {
+    for (entity, mesh_handle) in &query {
+        if let Some(mesh) = meshes.get(&mesh_handle.0) {
+
+            if let Some(collider) =
+                Collider::from_bevy_mesh(
+                    mesh,
+                    &ComputedColliderShape::TriMesh(
+                        TriMeshFlags::default()
+                    ),
+                )
+                {
+                    commands.entity(entity)
+                    .insert(RigidBody::Fixed)
+                    .insert(collider);
+                }
+        }
+    }
+}
+
 fn update_text(
     mut query: Query<&mut Text>,
 ) {
     for mut text in &mut query {
-        *text = Text::new("New value!\nfarts!");
+        *text = Text::new("Scrunklebunkle!\nFuture debug readout!");
     }
 }
 
