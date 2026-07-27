@@ -92,7 +92,7 @@ pub fn move_player(
     let movement =
     (transform.right() * input.x +
     transform.forward() * input.z)
-    * 3.0;
+    * 5.0;
 
     velocity.velocity.y -= 9.81 * dt;
 
