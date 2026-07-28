@@ -24,7 +24,7 @@ fn main() {
             setup_level_collision,
             quit
         ))
-        .add_systems(Startup, (map::spawn_map, map::spawn_test_floor).chain())
+        .add_systems(Startup, map::spawn_map)
         .run();
 }
 

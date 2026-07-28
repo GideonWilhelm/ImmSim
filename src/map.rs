@@ -10,22 +10,19 @@ pub fn spawn_map(
     ));
 }
 
-pub fn spawn_test_floor(
-    mut commands: Commands,
-) {
-    commands.spawn((
-        RigidBody::Fixed,
-        Collider::cuboid(10.0, 0.1, 10.0),
-                    Transform::from_xyz(0.0, 0.0, 0.0),
-    ));
-    commands.spawn((
-        RigidBody::Fixed,
-        Collider::cuboid(10.0, 0.1, 10.0),
-                       Transform::from_xyz(0.0, 0.25, -10.0),
-    ));
-}
-
 struct Plane { //defined by normal and distance from world origin
     normal: Vec3,
     distance: f32,
+}
+
+struct Brush {
+    planes: Vec<Plane>,
+    faces: Vec<Face>,
+    collision: bool, //just true for starters, will update later
+}
+
+struct Face {
+    plane_index: usize, //which plane the face is on
+    vertices: Vec<Vec3>,
+    material: usize,
 }
