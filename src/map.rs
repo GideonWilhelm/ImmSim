@@ -26,3 +26,7 @@ struct Face {
     vertices: Vec<Vec3>,
     material: usize,
 }
+
+fn signed_plane_distance(plane: Plane, point: Vec3) -> f32 {
+    plane.normal.dot(point) - plane.distance //isn't this cool, batman, we can just ship the result
+}
