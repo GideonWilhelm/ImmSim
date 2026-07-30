@@ -12,7 +12,6 @@ use bevy_rapier3d::prelude::*;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(HelloPlugin)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, (setup, player::spawn_player, player::lock_cursor))
@@ -54,7 +53,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         DirectionalLight {
             illuminance: 10000.0,
-            shadow_maps_enabled: false,
+            shadow_maps_enabled: true,
             ..default()
         },
         Transform::from_rotation(
@@ -112,6 +111,7 @@ fn update_text(
     }
 }
 
+/*
 //TODO: DELETE ALL OF THIS FROM HERE THIS IS DEMO CODE
 fn hello_world() {
     println!("hello world!");
@@ -162,4 +162,4 @@ impl Plugin for HelloPlugin {
         app.add_systems(Update, (update_people, greet_people).chain());
     }
 }
-
+*/

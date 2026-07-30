@@ -7,6 +7,12 @@ use bevy::input::mouse::MouseMotion;
 pub struct Player;
 
 #[derive(Component)]
+pub enum PlayerMode {
+    GAMEPLAY,
+    EDITOR,
+}
+
+#[derive(Component)]
 pub struct PlayerVelocity {
     pub velocity: Vec3,
 }
@@ -43,6 +49,7 @@ pub fn spawn_player(mut commands: Commands) {
         },
         Collider::capsule_y(0.9, 0.3),
         Transform::from_xyz(0.0, 2.0, 3.0),
+        InheritedVisibility::VISIBLE,
     )).id();
 
 
