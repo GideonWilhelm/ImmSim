@@ -8,6 +8,7 @@ mod common;
 
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
+use player::*;
 
 fn main() {
     App::new()
@@ -16,13 +17,16 @@ fn main() {
         .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, (setup, player::spawn_player, player::lock_cursor))
         .add_systems(Update, (update_text,
-            player::move_player,
+            player::move_player_gameplay,
+            player::move_player_editor,
+            player::toggle_player_mode,
             player::look_player,
             player::look_camera,
             player::handle_grounding,
-            setup_level_collision,
+            map::setup_level_collision,
             quit
         ))
+        .insert_resource(player::PlayerMode::Editor)
         .add_systems(Startup, map::spawn_map)
         .run();
 }
@@ -79,35 +83,22 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     ));
 }
 
-fn setup_level_collision(
-    mut commands: Commands,
-    meshes: Res<Assets<Mesh>>,
-    query: Query<(Entity, &Mesh3d), Without<Collider>>,
-) {
-    for (entity, mesh_handle) in &query {
-        if let Some(mesh) = meshes.get(&mesh_handle.0) {
-
-            if let Some(collider) =
-                Collider::from_bevy_mesh(
-                    mesh,
-                    &ComputedColliderShape::TriMesh(
-                        TriMeshFlags::default()
-                    ),
-                )
-                {
-                    commands.entity(entity)
-                    .insert(RigidBody::Fixed)
-                    .insert(collider);
-                }
-        }
-    }
-}
-
 fn update_text(
-    mut query: Query<&mut Text>,
+    mode: Res<PlayerMode>,
+    player: Query<&PlayerVelocity, With<Player>>,
+    mut text_query: Query<&mut Text>,
 ) {
-    for mut text in &mut query {
-        *text = Text::new("Scrunklebunkle!\nFuture debug readout!");
+    let velocity = player.single().unwrap();
+
+    for mut text in &mut text_query {
+        *text = Text::new(format!(
+            "Mode: {}\n\
+            Velocity: {:.2}, {:.2}, {:.2}",
+            mode.name(),
+            velocity.velocity.x,
+            velocity.velocity.y,
+            velocity.velocity.z,
+        ));
     }
 }
 

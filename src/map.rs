@@ -21,8 +21,12 @@ pub fn spawn_map(
         Mesh3d(meshes.add(mesh)),
         MeshMaterial3d(materials.add(Color::srgb(0.8, 0.8, 0.8))),
         Transform::default(),
+        BrushHitTestFlag,
     ));
 }
+
+#[derive(Component)]
+pub struct BrushHitTestFlag;
 
 struct Plane { //defined by normal and distance from world origin
     normal: Vec3,
@@ -274,4 +278,28 @@ fn build_mesh(
     );
 
     mesh
+}
+
+pub fn setup_level_collision(
+    mut commands: Commands,
+    meshes: Res<Assets<Mesh>>,
+    query: Query<(Entity, &Mesh3d), Without<Collider>>,
+) {
+    for (entity, mesh_handle) in &query {
+        if let Some(mesh) = meshes.get(&mesh_handle.0) {
+
+            if let Some(collider) =
+                Collider::from_bevy_mesh(
+                    mesh,
+                    &ComputedColliderShape::TriMesh(
+                        TriMeshFlags::default()
+                    ),
+                )
+                {
+                    commands.entity(entity)
+                    .insert(RigidBody::Fixed)
+                    .insert(collider);
+                }
+        }
+    }
 }

@@ -6,10 +6,19 @@ use bevy::input::mouse::MouseMotion;
 #[derive(Component)]
 pub struct Player;
 
-#[derive(Component)]
+#[derive(Resource)]
 pub enum PlayerMode {
-    GAMEPLAY,
-    EDITOR,
+    Gameplay,
+    Editor,
+}
+
+impl PlayerMode {
+    pub fn name(&self) -> &'static str {
+        match self {
+            PlayerMode::Gameplay => "Gameplay",
+            PlayerMode::Editor => "Editor",
+        }
+    }
 }
 
 #[derive(Component)]
@@ -62,11 +71,22 @@ pub fn spawn_player(mut commands: Commands) {
     });
 }
 
+pub fn toggle_player_mode(
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mut mode: ResMut<PlayerMode>,
+) {
+    if keyboard.just_pressed(KeyCode::KeyP) {
+        *mode = match *mode {
+            PlayerMode::Gameplay => PlayerMode::Editor,
+            PlayerMode::Editor => PlayerMode::Gameplay,
+        };
+    }
+}
 
-
-pub fn move_player(
+pub fn move_player_gameplay(
     time: Res<Time>,
     keyboard: Res<ButtonInput<KeyCode>>,
+    mut mode: ResMut<PlayerMode>,
     mut query: Query<(
         &mut KinematicCharacterController,
         &mut PlayerVelocity,
@@ -74,6 +94,10 @@ pub fn move_player(
     ), With<Player>>,
 ) {
     let (mut controller, mut velocity, transform) = query.single_mut().unwrap();
+
+    if !matches!(*mode, PlayerMode::Gameplay) {
+        return;
+    }
 
     let dt = time.delta_secs();
 
@@ -102,6 +126,62 @@ pub fn move_player(
     * 5.0;
 
     velocity.velocity.y -= 9.81 * dt;
+
+    controller.translation = Some(
+        movement * dt +
+        Vec3::Y * velocity.velocity.y * dt
+    );
+}
+
+pub fn move_player_editor(
+    time: Res<Time>,
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mut mode: ResMut<PlayerMode>,
+    mut query: Query<(
+        &mut KinematicCharacterController,
+        &mut PlayerVelocity,
+        &Transform,
+    ), With<Player>>,
+) {
+    let (mut controller, velocity, transform) = query.single_mut().unwrap();
+
+    if !matches!(*mode, PlayerMode::Editor) {
+        return;
+    }
+
+    let dt = time.delta_secs();
+
+    let mut input = Vec3::ZERO;
+
+    if keyboard.pressed(KeyCode::KeyW) {
+        input.z += 1.0; //positive z is forward in this ecosystem for some reason
+    }
+    if keyboard.pressed(KeyCode::KeyS) {
+        input.z -= 1.0;
+    }
+    if keyboard.pressed(KeyCode::KeyA) {
+        input.x -= 1.0;
+    }
+    if keyboard.pressed(KeyCode::KeyD) {
+        input.x += 1.0;
+    }
+    if keyboard.pressed(KeyCode::Space) {
+        input.y += 1.0;
+    }
+    if keyboard.pressed(KeyCode::ControlLeft) {
+        input.y -= 1.0;
+    }
+
+    if input.length_squared() > 0.0 {
+        input = input.normalize();
+    }
+
+    let movement = (
+            transform.right() * input.x +
+            transform.forward() * input.z +
+            transform.up() * input.y
+        )
+        * 7.0;
 
     controller.translation = Some(
         movement * dt +
