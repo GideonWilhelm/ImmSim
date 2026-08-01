@@ -66,6 +66,10 @@ pub fn spawn_player(mut commands: Commands) {
         parent.spawn((
             PlayerCamera,
             Camera3d::default(),
+            Projection::from(PerspectiveProjection {
+                fov: 70.0_f32.to_radians(),
+                ..default()
+            }),
             Transform::from_xyz(0.0, 0.7, 0.0),
         ));
     });
@@ -86,7 +90,7 @@ pub fn toggle_player_mode(
 pub fn move_player_gameplay(
     time: Res<Time>,
     keyboard: Res<ButtonInput<KeyCode>>,
-    mut mode: ResMut<PlayerMode>,
+    mode: Res<PlayerMode>,
     mut query: Query<(
         &mut KinematicCharacterController,
         &mut PlayerVelocity,
@@ -209,8 +213,7 @@ pub fn look_player(
     mut query: Query<(&mut LookAngles, &mut Transform), With<Player>>,
 ) {
     if matches!(*mode, PlayerMode::Editor) && !buttons.pressed(MouseButton::Right) {
-        return; //basically I also wanna update this to prevent mouselook unless rightclick is held
-        //Also wanna toggle on and off the mouse capture setting for editor/gameplay modes
+        return;
     }
 
     let Ok((mut look, mut transform)) = query.single_mut() else {
