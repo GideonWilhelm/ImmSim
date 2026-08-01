@@ -303,3 +303,23 @@ pub fn setup_level_collision(
         }
     }
 }
+
+pub fn editor_pick(
+    buttons: Res<ButtonInput<MouseButton>>,
+    windows: Query<&Window>,
+    camera_query: Query<(&Camera, &GlobalTransform), With<PlayerCamera>>,
+                   rapier_context: ReadRapierContext,
+                   brush_query: Query<(), With<BrushHitTestFlag>>,
+) {
+    if !buttons.just_pressed(MouseButton::Left) {
+        return;
+    }
+
+    // get cursor
+
+    // build ray
+
+    // rapier cast
+
+    // see if hit entity has BrushHitTestFlag
+}

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use bevy::window::{CursorGrabMode, CursorOptions};
-use bevy::input::mouse::MouseMotion;
+use bevy::input::mouse::{MouseMotion, mouse_button_input_system};
 
 #[derive(Component)]
 pub struct Player;
@@ -136,7 +136,7 @@ pub fn move_player_gameplay(
 pub fn move_player_editor(
     time: Res<Time>,
     keyboard: Res<ButtonInput<KeyCode>>,
-    mut mode: ResMut<PlayerMode>,
+    mode: Res<PlayerMode>,
     mut query: Query<(
         &mut KinematicCharacterController,
         &mut PlayerVelocity,
@@ -204,8 +204,15 @@ pub fn handle_grounding(
 
 pub fn look_player(
     mut mouse: MessageReader<MouseMotion>,
+    mode: Res<PlayerMode>,
+    buttons: Res<ButtonInput<MouseButton>>,
     mut query: Query<(&mut LookAngles, &mut Transform), With<Player>>,
 ) {
+    if matches!(*mode, PlayerMode::Editor) && !buttons.pressed(MouseButton::Right) {
+        return; //basically I also wanna update this to prevent mouselook unless rightclick is held
+        //Also wanna toggle on and off the mouse capture setting for editor/gameplay modes
+    }
+
     let Ok((mut look, mut transform)) = query.single_mut() else {
         return;
     };
@@ -235,10 +242,19 @@ pub fn look_player(
 }
 
 pub fn lock_cursor(
-    mut cursor: Single<&mut CursorOptions>
+    mut cursor: Single<&mut CursorOptions>,
+    mode: Res<PlayerMode>,
+    buttons: Res<ButtonInput<MouseButton>>,
 ) {
-    cursor.visible = false;
-    cursor.grab_mode = CursorGrabMode::Locked;
+    if matches!(*mode, PlayerMode::Gameplay) || buttons.pressed(MouseButton::Right) {
+        cursor.visible = false;
+        cursor.grab_mode = CursorGrabMode::Locked;
+    }
+
+    if matches!(*mode, PlayerMode::Editor) && !buttons.pressed(MouseButton::Right) {
+        cursor.visible = true;
+        cursor.grab_mode = CursorGrabMode::None;
+    }
 }
 
 pub fn look_camera(

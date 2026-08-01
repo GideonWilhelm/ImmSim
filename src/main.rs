@@ -15,13 +15,14 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
-        .add_systems(Startup, (setup, player::spawn_player, player::lock_cursor))
+        .add_systems(Startup, (setup, player::spawn_player))
         .add_systems(Update, (update_text,
             player::move_player_gameplay,
             player::move_player_editor,
             player::toggle_player_mode,
             player::look_player,
             player::look_camera,
+            player::lock_cursor,
             player::handle_grounding,
             map::setup_level_collision,
             quit
