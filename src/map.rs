@@ -307,9 +307,11 @@ pub fn setup_level_collision(
 pub fn editor_pick(
     buttons: Res<ButtonInput<MouseButton>>,
     windows: Query<&Window>,
-    camera_query: Query<(&Camera, &GlobalTransform), With<PlayerCamera>>,
-                   rapier_context: ReadRapierContext,
-                   brush_query: Query<(), With<BrushHitTestFlag>>,
+    camera_query: Query<(&Camera, &GlobalTransform),
+                    With<crate::player::PlayerCamera>>,
+                    rapier_context: ReadRapierContext,
+                    brush_query: Query<(),
+                        With<BrushHitTestFlag>>,
 ) {
     if !buttons.just_pressed(MouseButton::Left) {
         return;
