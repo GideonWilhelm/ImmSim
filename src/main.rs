@@ -1,8 +1,6 @@
 mod player;
 mod game;
 mod map;
-mod physics;
-mod render;
 mod ui;
 mod common;
 
@@ -14,7 +12,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugins(RapierDebugRenderPlugin::default())
+        //.add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, (setup, player::spawn_player))
         .add_systems(Update, (update_text,
             player::move_player_gameplay,
@@ -24,6 +22,7 @@ fn main() {
             player::look_camera,
             player::lock_cursor,
             player::handle_grounding,
+            map::editor_pick,
             map::setup_level_collision,
             quit
         ))

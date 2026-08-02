@@ -307,21 +307,48 @@ pub fn setup_level_collision(
 pub fn editor_pick(
     buttons: Res<ButtonInput<MouseButton>>,
     windows: Query<&Window>,
+    player_query: Query<Entity, With<crate::player::Player>>,
+    material_query: Query<&MeshMaterial3d<StandardMaterial>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
     camera_query: Query<(&Camera, &GlobalTransform),
-                    With<crate::player::PlayerCamera>>,
-                    rapier_context: ReadRapierContext,
-                    brush_query: Query<(),
-                        With<BrushHitTestFlag>>,
+        With<crate::player::PlayerCamera>>,
+    rapier_context: ReadRapierContext,
+    brush_query: Query<(),
+        With<BrushHitTestFlag>>,
 ) {
     if !buttons.just_pressed(MouseButton::Left) {
         return;
     }
 
-    // get cursor
+    let player = player_query.single().unwrap();
 
-    // build ray
+    let window = windows.single().unwrap();
 
-    // rapier cast
+    let Some(cursor) = window.cursor_position() else {
+        return;
+    };
 
-    // see if hit entity has BrushHitTestFlag
+    let (camera, camera_transform) = camera_query.single().unwrap();
+
+    let Ok(ray) = camera.viewport_to_world(camera_transform, cursor) else {
+        return;
+    };
+
+    if let Ok(context) = rapier_context.single() {
+        if let Some((entity, toi)) = context.cast_ray(
+            ray.origin,
+            *ray.direction,
+            1000.0,
+            true,
+            QueryFilter::default().exclude_collider(player),
+        ) {
+            if brush_query.contains(entity) {
+                if let Ok(material_handle) = material_query.get(entity) {
+                    if let Some(mut material) = materials.get_mut(&material_handle.0) {
+                        material.base_color = Color::srgb(0.0, 0.0, 1.0);
+                    }
+                }
+            }
+        }
+    }
 }
